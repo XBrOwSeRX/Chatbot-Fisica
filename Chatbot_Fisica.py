@@ -142,8 +142,10 @@ def detectar_ejercicio(p):
     return None
 
 def detectar_grafica(p):
-    p = p.lower()
-    if "grafica" in p or "gráfico" in p or "curva" in p or "muestra" in p:
+    # Pasamos todo a minúsculas y reemplazamos tildes para que no falle
+    p = p.lower().replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u")
+    
+    if "grafica" in p or "grafico" in p or "curva" in p or "muestra" in p:
         if "diodo" in p or "i-v" in p:
             return "diodo"
         if "carga" in p and "capacitor" in p:
