@@ -82,7 +82,9 @@ def formato_inteligente(numero):
 # RESPUESTAS TEÓRICAS
 # ------------------------------------------------------------
 def respuesta_teorica(p):
-    p = p.lower()
+    # Pasamos todo a minúsculas y quitamos las tildes
+    p = p.lower().replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u")
+    
     if "coulomb" in p:
         return "La Ley de Coulomb: **F = k * (|q1 * q2|) / r²**. k = 9x10⁹ N·m²/C²."
     elif "campo" in p and "electrico" in p:
@@ -103,7 +105,7 @@ def respuesta_teorica(p):
         return "Potencia: **P = V * I**, **P = I² * R**, **P = V² / R**."
     elif "kirchhoff" in p:
         return "Kirchhoff: Nodos → corrientes entrantes = salientes. Mallas → suma de voltajes = 0."
-    elif "circuito rc" in p or "transitorio" in p:
+    elif "rc" in p or "transitorio" in p:
         return "Circuito RC: constante de tiempo **τ = R * C**."
     elif "magnetica" in p and "fuerza" in p:
         return "Fuerza magnética: **F = q * (v × B)**."
