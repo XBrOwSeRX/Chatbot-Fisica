@@ -306,7 +306,7 @@ if pregunta:
     with st.chat_message("user"):
         st.markdown(pregunta)
 
-    # 1) Si hay flujo activo, continuar
+          # 1) Si hay flujo activo, continuar
     if st.session_state.flujo is not None:
         respuesta = continuar_flujo(pregunta)
         st.session_state.grafica = None
