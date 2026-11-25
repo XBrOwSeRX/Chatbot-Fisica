@@ -162,14 +162,36 @@ def iniciar_flujo(nombre):
 # ------------------------------------------------------------
 # CONTINUAR FLUJO
 # ------------------------------------------------------------
+# ------------------------------------------------------------
+# FORMATO DE NÚMEROS (Inteligente: normal o científico)
+# ------------------------------------------------------------
+def formato_cientifico(numero, decimales=2):
+    if numero == 0:
+        return "0"
+    formato = f"{numero:.{decimales}e}" 
+    mantisa, exponente = formato.split('e')
+    return f"{mantisa} × 10^{int(exponente)}"
+
+def formato_inteligente(numero):
+    if numero == 0:
+        return "0"
+    if 0.01 <= abs(numero) < 10000:
+        return f"{numero:.4g}" 
+    else:
+        return formato_cientifico(numero)
+
+# ------------------------------------------------------------
+# CONTINUAR FLUJO (Resolución paso a paso)
+# ------------------------------------------------------------
 def continuar_flujo(texto):
     flujo = st.session_state.flujo
     datos = st.session_state.datos
     paso = st.session_state.paso
 
+    # ========== FLUJO COULOMB ==========
     if flujo == "coulomb":
         if paso == 0:
-            n = convertir_unidades(texto)  # <-- CAMBIO AQUÍ
+            n = convertir_unidades(texto) 
             if n is None:
                 return "No detecté un número. Pásame la **carga q1 en C** (ej: 2 micro, 0.000002)."
             datos["q1"] = n
@@ -177,7 +199,7 @@ def continuar_flujo(texto):
             return "Perfecto. Ahora pásame la **carga q2 en C**."
             
         elif paso == 1:
-            n = convertir_unidades(texto)  # <-- CAMBIO AQUÍ
+            n = convertir_unidades(texto) 
             if n is None:
                 return "No detecté un número. Pásame la **carga q2 en C** (ej: 3 micro)."
             datos["q2"] = n
@@ -185,7 +207,7 @@ def continuar_flujo(texto):
             return "Bien. Ahora pásame la **distancia r en metros (m)**."
             
         elif paso == 2:
-            n = convertir_unidades(texto)  # <-- CAMBIO AQUÍ
+            n = convertir_unidades(texto) 
             if n is None or n == 0:
                 return "No detecté una distancia válida. Pásame la **distancia r en m** (ej: 5 centi, 0.05)."
             datos["r"] = n
@@ -194,10 +216,18 @@ def continuar_flujo(texto):
             F = k * abs(datos["q1"] * datos["q2"]) / (datos["r"] ** 2)
             tipo = "repulsión" if datos["q1"] * datos["q2"] > 0 else "atracción"
             st.session_state.flujo = None
-            return (f"✅ **Resultado:** F = {F:.4e} N\n\n"
-                    f"**Fórmula:** F = k·|q1·q2|/r² = 9x10⁹ · |{datos['q1']}·{datos['q2']}| / {datos['r']}²\n\n"
+            
+            # Formateo inteligente de los números
+            q1_f = formato_inteligente(datos['q1'])
+            q2_f = formato_inteligente(datos['q2'])
+            r_f = formato_inteligente(datos['r'])
+            F_f = formato_inteligente(F)
+            
+            return (f"✅ **Resultado:** F = {F_f} N\n\n"
+                    f"**Fórmula:** F = k·|q1·q2|/r² = 9x10⁹ · |({q1_f})·({q2_f})| / ({r_f})²\n\n"
                     f"La fuerza es de **{tipo}**.")
 
+    # ========== FLUJO LEY DE OHM ==========
     if flujo == "ohm":
         if paso == 0:
             t = texto.lower()
@@ -232,20 +262,24 @@ def continuar_flujo(texto):
             datos["b"] = n
             inc = datos["incognita"]
             st.session_state.flujo = None
+            
             if inc == "V":
                 V = datos["a"] * datos["b"]
-                return f"✅ **Resultado:** V = {V} V\n\n**Fórmula:** V = I·R = {datos['a']}·{datos['b']}"
+                return f"✅ **Resultado:** V = {formato_inteligente(V)} V\n\n**Fórmula:** V = I·R = {formato_inteligente(datos['a'])}·{formato_inteligente(datos['b'])}"
             elif inc == "I":
                 if datos["b"] == 0:
                     return "La resistencia no puede ser 0. Reinicia el cálculo."
                 I = datos["a"] / datos["b"]
-                return f"✅ **Resultado:** I = {I} A\n\n**Fórmula:** I = V/R = {datos['a']}/{datos['b']}"
+                return f"✅ **Resultado:** I = {formato_inteligente(I)} A\n\n**Fórmula:** I = V/R = {formato_inteligente(datos['a'])}/{formato_inteligente(datos['b'])}"
             else:
                 if datos["b"] == 0:
                     return "La corriente no puede ser 0. Reinicia el cálculo."
                 R = datos["a"] / datos["b"]
-                return f"✅ **Resultado:** R = {R} Ω\n\n**Fórmula:** R = V/I = {datos['a']}/{datos['b']}"
+                # Guardamos R para la gráfica dinámica
+                st.session_state.datos["R_grafica"] = R
+                return f"✅ **Resultado:** R = {formato_inteligente(R)} Ω\n\n**Fórmula:** R = V/I = {formato_inteligente(datos['a'])}/{formato_inteligente(datos['b'])}"
 
+    # ========== FLUJO POTENCIA ==========
     if flujo == "potencia":
         if paso == 0:
             n = extraer_numero(texto)
@@ -261,7 +295,7 @@ def continuar_flujo(texto):
             datos["I"] = n
             st.session_state.flujo = None
             P = datos["V"] * datos["I"]
-            return f"✅ **Resultado:** P = {P} W\n\n**Fórmula:** P = V·I = {datos['V']}·{datos['I']}"
+            return f"✅ **Resultado:** P = {formato_inteligente(P)} W\n\n**Fórmula:** P = V·I = {formato_inteligente(datos['V'])}·{formato_inteligente(datos['I'])}"
 
     return "Algo salió mal. Reinicia el cálculo escribiendo 'resuelve un ejercicio'."
 
