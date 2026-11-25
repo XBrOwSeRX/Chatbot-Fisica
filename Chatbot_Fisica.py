@@ -273,23 +273,27 @@ def generar_grafica(tipo):
         ax.set_ylabel("Carga normalizada")
         ax.grid(True)
 
-    # --- Ley de Ohm (V vs I) ---
+    # --- Ley de Ohm (V vs I) DINÁMICA ---
     elif tipo == "ohm":
+        # Buscamos si el alumno ya calculó una Resistencia antes
+        R = st.session_state.datos.get("R_grafica", 5) 
         I = np.linspace(0, 10, 100)
-        R = 5
         V = I * R
         ax.plot(I, V, color="purple")
-        ax.set_title("Ley de Ohm: V = I·R (R = 5 Ω)")
+        ax.set_title(f"Ley de Ohm: V = I·R (R = {R} Ω)") # El título cambia
         ax.set_xlabel("Corriente (A)")
         ax.set_ylabel("Voltaje (V)")
         ax.grid(True)
 
-    # --- Resonancia RLC ---
+    # --- Resonancia RLC (Agregamos un ejemplo para que cambie la curva) ---
     elif tipo == "resonancia":
+        # Buscamos si el alumno dio un factor de calidad (Q), si no, usamos 1
+        Q = st.session_state.datos.get("Q_rlc", 1) 
         f = np.linspace(0.1, 10, 500)
-        Z = np.abs(1 / (1 + 1j * (f - 1 / f)))
+        # Fórmula más realista de resonancia con factor Q
+        Z = np.abs(1 / (1 + 1j * Q * (f - 1 / f)))
         ax.plot(f, Z, color="orange")
-        ax.set_title("Resonancia en circuito RLC")
+        ax.set_title(f"Resonancia en circuito RLC (Factor Q = {Q})")
         ax.set_xlabel("Frecuencia relativa (f/f₀)")
         ax.set_ylabel("Impedancia normalizada")
         ax.grid(True)
