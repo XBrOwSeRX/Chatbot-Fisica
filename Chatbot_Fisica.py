@@ -45,7 +45,30 @@ def extraer_numero(texto):
     texto = texto.replace(",", ".")
     match = re.search(r"-?\d+(\.\d+)?", texto)
     return float(match.group()) if match else None
+# ------------------------------------------------------------
+# FUNCIÓN PARA CONVERTIR UNIDADES (micro, mili, centi, etc.)
+# ------------------------------------------------------------
+def convertir_unidades(texto):
+    texto = texto.lower().replace(",", ".")
+    multiplicador = 1.0
+    
+    # Detectamos prefijos en el texto
+    if "micro" in texto or "μ" in texto or "u" in texto:
+        multiplicador = 1e-6
+    elif "nano" in texto or "n" in texto:
+        multiplicador = 1e-9
+    elif "mili" in texto or "m" in texto:
+        multiplicador = 1e-3
+    elif "kilo" in texto or "k" in texto:
+        multiplicador = 1e3
+    elif "centi" in texto or "cm" in texto:
+        multiplicador = 1e-2
 
+    # Busca el número en el texto
+    match = re.search(r"-?\d+(\.\d+)?", texto)
+    if match:
+        return float(match.group()) * multiplicador
+    return None
 # ------------------------------------------------------------
 # RESPUESTAS TEÓRICAS
 # ------------------------------------------------------------
@@ -143,24 +166,27 @@ def continuar_flujo(texto):
 
     if flujo == "coulomb":
         if paso == 0:
-            n = extraer_numero(texto)
+            n = convertir_unidades(texto)  # <-- CAMBIO AQUÍ
             if n is None:
-                return "No detecté un número. Pásame la **carga q1 en C**."
+                return "No detecté un número. Pásame la **carga q1 en C** (ej: 2 micro, 0.000002)."
             datos["q1"] = n
             st.session_state.paso = 1
             return "Perfecto. Ahora pásame la **carga q2 en C**."
+            
         elif paso == 1:
-            n = extraer_numero(texto)
+            n = convertir_unidades(texto)  # <-- CAMBIO AQUÍ
             if n is None:
-                return "No detecté un número. Pásame la **carga q2 en C**."
+                return "No detecté un número. Pásame la **carga q2 en C** (ej: 3 micro)."
             datos["q2"] = n
             st.session_state.paso = 2
             return "Bien. Ahora pásame la **distancia r en metros (m)**."
+            
         elif paso == 2:
-            n = extraer_numero(texto)
+            n = convertir_unidades(texto)  # <-- CAMBIO AQUÍ
             if n is None or n == 0:
-                return "No detecté una distancia válida. Pásame la **distancia r en m** (distinta de 0)."
+                return "No detecté una distancia válida. Pásame la **distancia r en m** (ej: 5 centi, 0.05)."
             datos["r"] = n
+            
             k = 9e9
             F = k * abs(datos["q1"] * datos["q2"]) / (datos["r"] ** 2)
             tipo = "repulsión" if datos["q1"] * datos["q2"] > 0 else "atracción"
