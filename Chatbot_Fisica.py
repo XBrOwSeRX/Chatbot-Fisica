@@ -52,17 +52,17 @@ def convertir_unidades(texto):
     texto = texto.lower().replace(",", ".")
     multiplicador = 1.0
     
-    # Detectamos prefijos en el texto
-    if "micro" in texto or "μ" in texto or "u" in texto:
+    # Evaluamos "cm" PRIMERO para que no lo confunda con "mili" o "m"
+    if "cm" in texto or "centi" in texto:
+        multiplicador = 1e-2
+    elif "micro" in texto or "μ" in texto or "microcoloumb" in texto:
         multiplicador = 1e-6
-    elif "nano" in texto or "n" in texto:
+    elif "nano" in texto:
         multiplicador = 1e-9
-    elif "mili" in texto or "m" in texto:
+    elif "mili" in texto or "mm" in texto:
         multiplicador = 1e-3
     elif "kilo" in texto or "k" in texto:
         multiplicador = 1e3
-    elif "centi" in texto or "cm" in texto:
-        multiplicador = 1e-2
 
     # Busca el número en el texto
     match = re.search(r"-?\d+(\.\d+)?", texto)
