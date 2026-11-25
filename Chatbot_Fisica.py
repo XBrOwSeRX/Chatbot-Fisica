@@ -82,45 +82,126 @@ def formato_inteligente(numero):
 # RESPUESTAS TEÓRICAS
 # ------------------------------------------------------------
 def respuesta_teorica(p):
-    # Pasamos todo a minúsculas y quitamos las tildes
+    # Pasamos todo a minúsculas y quitamos las tildes para evitar fallos
     p = p.lower().replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u")
     
     if "coulomb" in p:
-        return "La Ley de Coulomb: **F = k * (|q1 * q2|) / r²**. k = 9x10⁹ N·m²/C²."
+        return ("⚡ **Ley de Coulomb:**\n\n"
+                "**Concepto:** Describe la fuerza eléctrica de atracción o repulsión entre dos cargas puntuales.\n"
+                "**Fórmula:** F = k * (|q1 * q2|) / r²\n"
+                "**Dato clave:** k = 9×10⁹ N·m²/C². Si las cargas tienen el mismo signo se repelen, si son opuestas se atraen.\n\n"
+                "*Escribe 'resuelve un ejercicio de coulomb' si quieres que calculemos uno paso a paso.*")
+                
     elif "campo" in p and "electrico" in p:
-        return "Campo eléctrico: **E = F / q**. Se mide en N/C o V/m."
+        return ("🔋 **Campo Eléctrico:**\n\n"
+                "**Concepto:** Es la fuerza eléctrica que experimenta una unidad de carga en un punto del espacio.\n"
+                "**Fórmula:** E = F / q\n"
+                "**Unidades:** Se mide en Newtons por Coulomb (N/C) o Voltios por metro (V/m).\n\n"
+                "*Escribe 'resuelve un ejercicio de campo' para practicar.*")
+                
     elif "carga" in p and "electrica" in p:
-        return "Carga eléctrica: **Q = n * e**, con e = 1.602 x 10⁻¹⁹ C."
+        return ("⚛️ **Carga Eléctrica:**\n\n"
+                "**Concepto:** Propiedad fundamental de la materia que se manifiesta mediante fuerzas de atracción o repulsión (positiva y negativa).\n"
+                "**Fórmula:** Q = n * e\n"
+                "**Dato clave:** e = 1.602 x 10⁻¹⁹ C (carga del electrón). La carga siempre está cuantizada.\n\n"
+                "*Escribe 'resuelve un ejercicio de carga' para calcular el número de electrones.*")
+                
     elif "gauss" in p:
-        return "Ley de Gauss: **Φ = Q_encerrada / ε₀**."
+        return ("🌐 **Ley de Gauss:**\n\n"
+                "**Concepto:** El flujo eléctrico neto a través de una superficie cerrada es proporcional a la carga neta encerrada.\n"
+                "**Fórmula:** Φ = Q_encerrada / ε₀\n\n"
+                "*Esta es una ley fundamental del electromagnetismo.*")
+                
     elif "potencial" in p:
-        return "Potencial eléctrico: **V = U / q**. Se mide en Voltios."
+        return ("🔌 **Potencial Eléctrico:**\n\n"
+                "**Concepto:** Es la energía potencial eléctrica por unidad de carga en un punto.\n"
+                "**Fórmula:** V = U / q\n"
+                "**Unidades:** Se mide en Voltios (V).\n\n"
+                "*Escribe 'resuelve un ejercicio de potencial' para calcularlo.*")
+                
     elif "capacitor" in p or "capacitancia" in p:
-        return "Capacitor: **C = Q / V**. En serie: 1/Ct = 1/C1 + 1/C2. En paralelo: Ct = C1 + C2."
+        return ("🔋 **Capacitores:**\n\n"
+                "**Concepto:** Dispositivo que almacena energía en forma de campo eléctrico.\n"
+                "**Fórmula principal:** C = Q / V\n"
+                "**Asociaciones:** En serie: 1/Ct = 1/C1 + 1/C2. En paralelo: Ct = C1 + C2.\n\n"
+                "*Escribe 'resuelve un ejercicio de capacitor' para calcular la energía almacenada (U = ½·C·V²).*")
+                
     elif "ohm" in p:
-        return "Ley de Ohm: **V = I * R**."
+        return ("📏 **Ley de Ohm:**\n\n"
+                "**Concepto:** La corriente que pasa por un conductor es directamente proporcional al voltaje aplicado.\n"
+                "**Fórmula:** V = I * R\n"
+                "**Variables:** V (Voltaje), I (Corriente), R (Resistencia).\n\n"
+                "*Escribe 'resuelve un ejercicio de ohm' si quieres calcular V, I o R.*")
+                
     elif "resistencia" in p and ("serie" in p or "paralelo" in p):
-        return "En serie: **Req = R1 + R2**. En paralelo: **1/Req = 1/R1 + 1/R2**."
+        return ("🔗 **Resistencias en Serie y Paralelo:**\n\n"
+                "**En Serie:** Se suman directamente -> Req = R1 + R2 + ...\n"
+                "**En Paralelo:** Se suman los inversos -> 1/Req = 1/R1 + 1/R2 + ...\n\n"
+                "*Escribe 'resuelve un ejercicio de resistencias' para practicar.*")
+                
     elif "potencia" in p:
-        return "Potencia: **P = V * I**, **P = I² * R**, **P = V² / R**."
+        return ("⚡ **Potencia Eléctrica:**\n\n"
+                "**Concepto:** Es la energía consumida o generada por un circuito por unidad de tiempo.\n"
+                "**Fórmulas:** P = V * I  |  P = I² * R  |  P = V² / R\n"
+                "**Unidades:** Se mide en Watts (W).\n\n"
+                "*Escribe 'resuelve un ejercicio de potencia' para calcularla.*")
+                
     elif "kirchhoff" in p:
-        return "Kirchhoff: Nodos → corrientes entrantes = salientes. Mallas → suma de voltajes = 0."
+        return ("🔀 **Leyes de Kirchhoff:**\n\n"
+                "**1ra Ley (Nodos):** La suma de corrientes que entran a un nodo es igual a la suma de las que salen.\n"
+                "**2da Ley (Mallas):** La suma algebraica de los voltajes en una malla cerrada es cero.\n\n"
+                "*Escribe 'resuelve un ejercicio de kirchhoff' para ver un ejemplo.*")
+                
     elif "rc" in p or "transitorio" in p:
-        return "Circuito RC: constante de tiempo **τ = R * C**."
+        return ("⏱️ **Circuito RC:**\n\n"
+                "**Concepto:** Circuito con resistencia y capacitor. La constante de tiempo indica qué tan rápido se carga o descarga.\n"
+                "**Fórmula:** τ = R * C\n\n"
+                "*Escribe 'resuelve un ejercicio de circuito rc' para calcular el tiempo.*")
+                
     elif "magnetica" in p and "fuerza" in p:
-        return "Fuerza magnética: **F = q * (v × B)**."
+        return ("🧲 **Fuerza Magnética:**\n\n"
+                "**Concepto:** Fuerza que ejerce un campo magnético sobre una carga en movimiento.\n"
+                "**Fórmula:** F = q * (v × B)\n"
+                "**Dato clave:** Es perpendicular a la velocidad y al campo magnético.\n\n"
+                "*Escribe 'resuelve un ejercicio de fuerza magnetica' para practicar.*")
+                
     elif "faraday" in p or "lenz" in p:
-        return "Faraday: **ε = -dΦ/dt**. Lenz: la corriente inducida se opone al cambio."
+        return ("🔄 **Ley de Faraday y Lenz:**\n\n"
+                "**Faraday:** Un campo magnético variable genera una fuerza electromotriz inducida. Fórmula: ε = -dΦ/dt.\n"
+                "**Lenz:** La corriente inducida siempre se opone al cambio que la produjo.\n\n"
+                "*Escribe 'resuelve un ejercicio de faraday' para calcular la fem.*")
+                
     elif "alterna" in p or "eficaz" in p or "rms" in p:
-        return "En CA: **V_rms = V_max / √2**."
+        return ("〰️ **Corriente Alterna (CA):**\n\n"
+                "**Concepto:** La corriente y el voltaje varían cíclicamente en el tiempo.\n"
+                "**Fórmula:** V_rms = V_max / √2\n"
+                "**Dato clave:** El valor eficaz (RMS) equivale al de una corriente continua que produce el mismo efecto térmico.\n\n"
+                "*Escribe 'resuelve un ejercicio de corriente alterna' para calcularlo.*")
+                
     elif "impedancia" in p or "rlc" in p:
-        return "Impedancia Z combina R y X. Resonancia RLC cuando Xl = Xc."
+        return ("📈 **Impedancia y Resonancia RLC:**\n\n"
+                "**Impedancia (Z):** Es la oposición total al flujo de corriente alterna. Combina la resistencia (R) y la reactancia (X).\n"
+                "**Resonancia:** Ocurre cuando la reactancia inductiva (Xl) iguala a la capacitiva (Xc), minimizando la impedancia.\n\n"
+                "*Escribe 'muéstrame la gráfica de resonancia' para ver la curva.*")
+                
     elif "diodo" in p and "zener" not in p:
-        return "Un diodo conduce en polarización directa y bloquea en inversa."
+        return ("💡 **Diodo Semiconductor:**\n\n"
+                "**Concepto:** Componente que permite el paso de corriente en un solo sentido (polarización directa) y lo bloquea en el inverso.\n"
+                "**Dato clave:** En silicio, la barrera de potencial es de aproximadamente 0.7 V.\n\n"
+                "*Escribe 'resuelve un ejercicio de diodo' para calcular la corriente en un circuito.*")
+                
     elif "semiconductor" in p:
-        return "Tipo N: exceso de electrones. Tipo P: exceso de huecos."
+        return ("🔬 **Semiconductores:**\n\n"
+                "**Concepto:** Materiales con conductividad intermedia entre un conductor y un aislante.\n"
+                "**Dopaje:** Tipo N (exceso de electrones, carga negativa) y Tipo P (exceso de huecos, carga positiva).\n\n"
+                "*Escribe 'muéstrame la gráfica del diodo' para ver la curva I-V.*")
+                
     elif "zener" in p:
-        return "Diodo Zener: regula voltaje permitiendo flujo inverso al alcanzar su voltaje Zener."
+        return ("🛡️ **Diodo Zener:**\n\n"
+                "**Concepto:** Diodo especial que permite el flujo de corriente en polarización inversa cuando se alcanza su voltaje Zener.\n"
+                "**Uso:** Se utiliza para regular el voltaje en circuitos.\n\n"
+                "*Escribe 'resuelve un ejercicio de zener' para ver un ejemplo de regulación.*")
+                
     else:
         return None
 
@@ -141,6 +222,12 @@ def detectar_ejercicio(p):
         return "capacitor"
     if "diodo" in p and any(w in p for w in gatillos):
         return "diodo"
+    if "campo" in p and any(w in p for w in gatillos):
+        return "campo"
+    if "carga" in p and any(w in p for w in gatillos):
+        return "carga"
+    if "resistencia" in p and any(w in p for w in gatillos):
+        return "resistencia"    
     return None
 
 def detectar_grafica(p):
@@ -177,7 +264,12 @@ def iniciar_flujo(nombre):
         return "¡Claro! Vamos a calcular la **energía de un capacitor (U = ½ · C · V²)**. Pásame la **capacitancia (C) en Faradios (F)**."
     if nombre == "diodo":
         return "¡Claro! Vamos a resolver un **circuito con diodo de silicio (0.7 V)**. Pásame el **voltaje de la fuente (V) en Voltios**."
-
+    if nombre == "campo":
+        return "¡Claro! Vamos a calcular el **Campo Eléctrico (E = F/q)**. Pásame la **fuerza (F) en Newtons**."
+    if nombre == "carga":
+        return "¡Claro! Vamos a calcular la **Carga Eléctrica (Q = n * e)**. Pásame el **número de electrones (n)**."
+    if nombre == "resistencia":
+        return "¡Claro! Vamos a calcular la **Resistencia Equivalente**. Pásame el valor de **R1 en Ohmios**."
 # ------------------------------------------------------------
 # CONTINUAR FLUJO (CON VALIDACIÓN DE ERRORES)
 # ------------------------------------------------------------
