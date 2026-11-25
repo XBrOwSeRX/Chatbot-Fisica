@@ -152,7 +152,7 @@ def respuesta_teorica(p):
                 "**2da Ley (Mallas):** La suma algebraica de los voltajes en una malla cerrada es cero.\n\n"
                 "*Escribe 'resuelve un ejercicio de kirchhoff' para ver un ejemplo.*")
                 
-    elif "rc" in p or "transitorio" in p:
+    elif "circuito rc" in p or "transitorio" in p:
         return ("⏱️ **Circuito RC:**\n\n"
                 "**Concepto:** Circuito con resistencia y capacitor. La constante de tiempo indica qué tan rápido se carga o descarga.\n"
                 "**Fórmula:** τ = R * C\n\n"
@@ -495,6 +495,7 @@ def generar_grafica(tipo):
 # ------------------------------------------------------------
 # LÓGICA PRINCIPAL
 # ------------------------------------------------------------
+
 pregunta = st.chat_input("Escribe tu pregunta, pide un ejercicio o una gráfica...")
 
 if pregunta:
@@ -502,28 +503,38 @@ if pregunta:
     with st.chat_message("user"):
         st.markdown(pregunta)
 
+    # 1) Si hay un flujo activo, continuar
     if st.session_state.flujo is not None:
         respuesta = continuar_flujo(pregunta)
         st.session_state.grafica = None
-    else:
+        
+    # 2) Si no, ver si pide gráfica
+    elif "grafica" in pregunta.lower() or "gráfico" in pregunta.lower() or "muéstrame" in pregunta.lower():
         tipo_graf = detectar_grafica(pregunta)
         if tipo_graf:
             respuesta = f"Aquí tienes la gráfica: **{tipo_graf.replace('_', ' ')}**."
             st.session_state.grafica = tipo_graf
         else:
-            tipo_ej = detectar_ejercicio(pregunta)
-            if tipo_ej:
-                respuesta = iniciar_flujo(tipo_ej)
-                st.session_state.grafica = None
+            respuesta = "Dime qué gráfica quieres ver: diodo, capacitor, ley de ohm o resonancia."
+            st.session_state.grafica = None
+            
+    # 3) Si no pide gráfica, ver si pide ejercicio
+    else:
+        tipo_ej = detectar_ejercicio(pregunta)
+        if tipo_ej:
+            respuesta = iniciar_flujo(tipo_ej)
+            st.session_state.grafica = None
+            
+        # 4) Si no pide ejercicio, dar respuesta teórica
+        else:
+            r = respuesta_teorica(pregunta)
+            if r:
+                respuesta = r
             else:
-                r = respuesta_teorica(pregunta)
-                if r:
-                    respuesta = r
-                else:
-                    respuesta = ("Lo siento, no entendí. Puedo **explicarte fórmulas**, "
-                                 "**resolver ejercicios** o **mostrarte gráficas** de los 4 módulos. "
-                                 "Ejemplo: 'resuelve un ejercicio de la ley de ohm' o 'muéstrame la gráfica del diodo'.")
-                st.session_state.grafica = None
+                respuesta = ("Lo siento, no entendí. Puedo **explicarte fórmulas**, "
+                             "**resolver ejercicios** o **mostrarte gráficas** de los 4 módulos. "
+                             "Ejemplo: 'resuelve un ejercicio de la ley de ohm' o 'muéstrame la gráfica del diodo'.")
+            st.session_state.grafica = None
 
     st.session_state.mensajes.append({"role": "assistant", "content": respuesta})
     with st.chat_message("assistant"):
