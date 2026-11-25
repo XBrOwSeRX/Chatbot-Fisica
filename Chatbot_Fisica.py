@@ -118,8 +118,11 @@ def respuesta_teorica(p):
 # ------------------------------------------------------------
 def detectar_ejercicio(p):
     p = p.lower()
+    # Agregamos más sinónimos y errores comunes
     gatillos = ["resuelve", "resuelbe", "calcula", "ejercicio", "problema", "ayuda", "quiero calcular", "hazme"]
-    if ("coulomb" in p or "fuerza electrica" in p) and any(w in p for w in gatillos):
+    
+    # Buscamos la raíz "coulom" para que atrape coulomb, coulom, coulumb, etc.
+    if ("coulom" in p or "fuerza electrica" in p) and any(w in p for w in gatillos):
         return "coulomb"
     if "ohm" in p and any(w in p for w in gatillos):
         return "ohm"
