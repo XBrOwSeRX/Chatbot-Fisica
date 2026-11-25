@@ -1,5 +1,5 @@
 # ============================================================
-# CHATBOT DE FÍSICA APLICADA - VERSIÓN FINAL CON GRÁFICAS
+# CHATBOT DE FÍSICA APLICADA - VERSIÓN FINAL DEFINITIVA
 # ============================================================
 
 import streamlit as st
@@ -29,30 +29,24 @@ if "datos" not in st.session_state:
 if "paso" not in st.session_state:
     st.session_state.paso = 0
 if "grafica" not in st.session_state:
-    st.session_state.grafica = None   # Guarda qué gráfica mostrar
+    st.session_state.grafica = None
 
-# ------------------------------------------------------------
-# MOSTRAR HISTORIAL
-# ------------------------------------------------------------
 for msg in st.session_state.mensajes:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
 # ------------------------------------------------------------
-# UTILIDAD: EXTRAER NÚMERO
+# UTILIDADES Y FORMATOS
 # ------------------------------------------------------------
 def extraer_numero(texto):
     texto = texto.replace(",", ".")
     match = re.search(r"-?\d+(\.\d+)?", texto)
     return float(match.group()) if match else None
-# ------------------------------------------------------------
-# FUNCIÓN PARA CONVERTIR UNIDADES (micro, mili, centi, etc.)
-# ------------------------------------------------------------
+
 def convertir_unidades(texto):
     texto = texto.lower().replace(",", ".")
     multiplicador = 1.0
     
-    # Evaluamos "cm" PRIMERO para que no lo confunda con "mili" o "m"
     if "cm" in texto or "centi" in texto:
         multiplicador = 1e-2
     elif "micro" in texto or "μ" in texto or "microcoloumb" in texto:
@@ -64,11 +58,26 @@ def convertir_unidades(texto):
     elif "kilo" in texto or "k" in texto:
         multiplicador = 1e3
 
-    # Busca el número en el texto
     match = re.search(r"-?\d+(\.\d+)?", texto)
     if match:
         return float(match.group()) * multiplicador
     return None
+
+def formato_cientifico(numero, decimales=2):
+    if numero == 0:
+        return "0"
+    formato = f"{numero:.{decimales}e}" 
+    mantisa, exponente = formato.split('e')
+    return f"{mantisa} × 10^{int(exponente)}"
+
+def formato_inteligente(numero):
+    if numero == 0:
+        return "0"
+    if 0.01 <= abs(numero) < 10000:
+        return f"{numero:.4g}" 
+    else:
+        return formato_cientifico(numero)
+
 # ------------------------------------------------------------
 # RESPUESTAS TEÓRICAS
 # ------------------------------------------------------------
@@ -94,7 +103,7 @@ def respuesta_teorica(p):
         return "Potencia: **P = V * I**, **P = I² * R**, **P = V² / R**."
     elif "kirchhoff" in p:
         return "Kirchhoff: Nodos → corrientes entrantes = salientes. Mallas → suma de voltajes = 0."
-    elif "rc" in p or "transitorio" in p:
+    elif "circuito rc" in p or "transitorio" in p:
         return "Circuito RC: constante de tiempo **τ = R * C**."
     elif "magnetica" in p and "fuerza" in p:
         return "Fuerza magnética: **F = q * (v × B)**."
@@ -114,20 +123,22 @@ def respuesta_teorica(p):
         return None
 
 # ------------------------------------------------------------
-# DETECTAR SI QUIERE RESOLVER UN EJERCICIO O VER UNA GRÁFICA
+# DETECCIÓN DE INTENCIONES
 # ------------------------------------------------------------
 def detectar_ejercicio(p):
     p = p.lower()
-    # Agregamos más sinónimos y errores comunes
     gatillos = ["resuelve", "resuelbe", "calcula", "ejercicio", "problema", "ayuda", "quiero calcular", "hazme"]
     
-    # Buscamos la raíz "coulom" para que atrape coulomb, coulom, coulumb, etc.
     if ("coulom" in p or "fuerza electrica" in p) and any(w in p for w in gatillos):
         return "coulomb"
     if "ohm" in p and any(w in p for w in gatillos):
         return "ohm"
     if "potencia" in p and any(w in p for w in gatillos):
         return "potencia"
+    if "capacitor" in p and any(w in p for w in gatillos):
+        return "capacitor"
+    if "diodo" in p and any(w in p for w in gatillos):
+        return "diodo"
     return None
 
 def detectar_grafica(p):
@@ -146,7 +157,7 @@ def detectar_grafica(p):
     return None
 
 # ------------------------------------------------------------
-# INICIAR FLUJO DE EJERCICIO
+# INICIAR FLUJOS
 # ------------------------------------------------------------
 def iniciar_flujo(nombre):
     st.session_state.flujo = nombre
@@ -158,30 +169,13 @@ def iniciar_flujo(nombre):
         return "¡Claro! Vamos con la **Ley de Ohm (V = I * R)**. ¿Qué quieres calcular: **voltaje**, **corriente** o **resistencia**?"
     if nombre == "potencia":
         return "¡Claro! Vamos con **Potencia (P = V * I)**. Pásame el **voltaje (V)** en Voltios."
+    if nombre == "capacitor":
+        return "¡Claro! Vamos a calcular la **energía de un capacitor (U = ½ · C · V²)**. Pásame la **capacitancia (C) en Faradios (F)**."
+    if nombre == "diodo":
+        return "¡Claro! Vamos a resolver un **circuito con diodo de silicio (0.7 V)**. Pásame el **voltaje de la fuente (V) en Voltios**."
 
 # ------------------------------------------------------------
-# CONTINUAR FLUJO
-# ------------------------------------------------------------
-# ------------------------------------------------------------
-# FORMATO DE NÚMEROS (Inteligente: normal o científico)
-# ------------------------------------------------------------
-def formato_cientifico(numero, decimales=2):
-    if numero == 0:
-        return "0"
-    formato = f"{numero:.{decimales}e}" 
-    mantisa, exponente = formato.split('e')
-    return f"{mantisa} × 10^{int(exponente)}"
-
-def formato_inteligente(numero):
-    if numero == 0:
-        return "0"
-    if 0.01 <= abs(numero) < 10000:
-        return f"{numero:.4g}" 
-    else:
-        return formato_cientifico(numero)
-
-# ------------------------------------------------------------
-# CONTINUAR FLUJO (Resolución paso a paso)
+# CONTINUAR FLUJO (CON VALIDACIÓN DE ERRORES)
 # ------------------------------------------------------------
 def continuar_flujo(texto):
     flujo = st.session_state.flujo
@@ -193,11 +187,10 @@ def continuar_flujo(texto):
         if paso == 0:
             n = convertir_unidades(texto) 
             if n is None:
-                return "No detecté un número. Pásame la **carga q1 en C** (ej: 2 micro, 0.000002)."
+                return "No detecté un número. Pásame la **carga q1 en C** (ej: 2 micro)."
             datos["q1"] = n
             st.session_state.paso = 1
             return "Perfecto. Ahora pásame la **carga q2 en C**."
-            
         elif paso == 1:
             n = convertir_unidades(texto) 
             if n is None:
@@ -205,24 +198,21 @@ def continuar_flujo(texto):
             datos["q2"] = n
             st.session_state.paso = 2
             return "Bien. Ahora pásame la **distancia r en metros (m)**."
-            
         elif paso == 2:
             n = convertir_unidades(texto) 
-            if n is None or n == 0:
-                return "No detecté una distancia válida. Pásame la **distancia r en m** (ej: 5 centi, 0.05)."
+            if n is None:
+                return "No detecté un número. Pásame la **distancia r en m** (ej: 5 centi)."
+            if n == 0:
+                return "❌ **Error físico:** La distancia no puede ser 0. Por favor, pásame una **distancia mayor a 0**."
             datos["r"] = n
-            
             k = 9e9
             F = k * abs(datos["q1"] * datos["q2"]) / (datos["r"] ** 2)
             tipo = "repulsión" if datos["q1"] * datos["q2"] > 0 else "atracción"
             st.session_state.flujo = None
-            
-            # Formateo inteligente de los números
             q1_f = formato_inteligente(datos['q1'])
             q2_f = formato_inteligente(datos['q2'])
             r_f = formato_inteligente(datos['r'])
             F_f = formato_inteligente(F)
-            
             return (f"✅ **Resultado:** F = {F_f} N\n\n"
                     f"**Fórmula:** F = k·|q1·q2|/r² = 9x10⁹ · |({q1_f})·({q2_f})| / ({r_f})²\n\n"
                     f"La fuerza es de **{tipo}**.")
@@ -259,23 +249,20 @@ def continuar_flujo(texto):
             n = extraer_numero(texto)
             if n is None:
                 return "No detecté un número. Pásame el valor numérico."
-            datos["b"] = n
             inc = datos["incognita"]
+            if n == 0 and inc in ("I", "R"):
+                return "❌ **Error matemático:** No se puede dividir entre 0. Por favor, pásame un valor mayor a 0."
+            datos["b"] = n
             st.session_state.flujo = None
             
             if inc == "V":
                 V = datos["a"] * datos["b"]
                 return f"✅ **Resultado:** V = {formato_inteligente(V)} V\n\n**Fórmula:** V = I·R = {formato_inteligente(datos['a'])}·{formato_inteligente(datos['b'])}"
             elif inc == "I":
-                if datos["b"] == 0:
-                    return "La resistencia no puede ser 0. Reinicia el cálculo."
                 I = datos["a"] / datos["b"]
                 return f"✅ **Resultado:** I = {formato_inteligente(I)} A\n\n**Fórmula:** I = V/R = {formato_inteligente(datos['a'])}/{formato_inteligente(datos['b'])}"
             else:
-                if datos["b"] == 0:
-                    return "La corriente no puede ser 0. Reinicia el cálculo."
                 R = datos["a"] / datos["b"]
-                # Guardamos R para la gráfica dinámica
                 st.session_state.datos["R_grafica"] = R
                 return f"✅ **Resultado:** R = {formato_inteligente(R)} Ω\n\n**Fórmula:** R = V/I = {formato_inteligente(datos['a'])}/{formato_inteligente(datos['b'])}"
 
@@ -297,16 +284,69 @@ def continuar_flujo(texto):
             P = datos["V"] * datos["I"]
             return f"✅ **Resultado:** P = {formato_inteligente(P)} W\n\n**Fórmula:** P = V·I = {formato_inteligente(datos['V'])}·{formato_inteligente(datos['I'])}"
 
+    # ========== FLUJO CAPACITOR ==========
+    if flujo == "capacitor":
+        if paso == 0:
+            n = convertir_unidades(texto)
+            if n is None:
+                return "No detecté un número. Pásame la **capacitancia C en Faradios (F)** (ej: 5 micro)."
+            datos["C"] = n
+            st.session_state.paso = 1
+            return "Perfecto. Ahora pásame el **voltaje (V) en Voltios**."
+        elif paso == 1:
+            n = extraer_numero(texto)
+            if n is None:
+                return "No detecté un número. Pásame el **voltaje V en Voltios**."
+            datos["V"] = n
+            st.session_state.flujo = None
+            U = 0.5 * datos["C"] * (datos["V"] ** 2)
+            C_f = formato_inteligente(datos['C'])
+            V_f = formato_inteligente(datos['V'])
+            U_f = formato_inteligente(U)
+            return (f"✅ **Resultado:** U = {U_f} Joules (J)\n\n"
+                    f"**Fórmula:** U = ½ · C · V² = ½ · ({C_f}) · ({V_f})²\n\n"
+                    f"La energía almacenada es de **{U_f} J**.")
+
+    # ========== FLUJO DIODO ==========
+    if flujo == "diodo":
+        if paso == 0:
+            n = extraer_numero(texto)
+            if n is None:
+                return "No detecté un número. Pásame el **voltaje de la fuente (V)** (ej: 12)."
+            datos["V_fuente"] = n
+            st.session_state.paso = 1
+            return "Perfecto. Ahora pásame el valor de la **resistencia (R) en Ohmios (Ω)**."
+        elif paso == 1:
+            n = extraer_numero(texto)
+            if n is None or n == 0:
+                return "No detecté una resistencia válida. Debe ser un número mayor a 0."
+            datos["R"] = n
+            st.session_state.flujo = None
+            V_diodo = 0.7
+            if datos["V_fuente"] <= V_diodo:
+                return ("⚠️ **El diodo NO conduce.**\n\n"
+                        "El voltaje de la fuente es menor o igual a la barrera de potencial del silicio (0.7 V), "
+                        "por lo que el diodo está en corte (polarización inversa o insuficiente). La corriente es **0 A**.")
+            V_resistencia = datos["V_fuente"] - V_diodo
+            I = V_resistencia / datos["R"]
+            I_mA = I * 1000
+            V_f = formato_inteligente(datos["V_fuente"])
+            R_f = formato_inteligente(datos["R"])
+            I_f = formato_inteligente(I)
+            return (f"✅ **Resultado:** El diodo conduce y la corriente es **I = {I_f} A** ({formato_inteligente(I_mA)} mA)\n\n"
+                    f"**Fórmula de la malla:** V_fuente = V_diodo + V_resistencia\n"
+                    f"1. Caída en la resistencia: {V_f} V - 0.7 V = {formato_inteligente(V_resistencia)} V\n"
+                    f"2. Ley de Ohm: I = V_resistencia / R = {formato_inteligente(V_resistencia)} V / {R_f} Ω\n\n"
+                    f"*(Nota: Se asume un diodo de silicio con caída típica de 0.7 V)*.")
+
     return "Algo salió mal. Reinicia el cálculo escribiendo 'resuelve un ejercicio'."
 
 # ------------------------------------------------------------
-# FUNCIÓN QUE GENERA LAS GRÁFICAS
-# Devuelve una figura de matplotlib según el tipo.
+# GENERADOR DE GRÁFICAS
 # ------------------------------------------------------------
 def generar_grafica(tipo):
     fig, ax = plt.subplots(figsize=(6, 4))
 
-    # --- Curva I-V de un diodo ---
     if tipo == "diodo":
         V = np.linspace(-1, 1, 200)
         I = np.where(V > 0, (np.exp(V / 0.05) - 1) * 1e-3, -1e-6)
@@ -316,7 +356,6 @@ def generar_grafica(tipo):
         ax.set_ylabel("Corriente (A)")
         ax.grid(True)
 
-    # --- Carga de un capacitor ---
     elif tipo == "carga_capacitor":
         t = np.linspace(0, 5, 200)
         q = 1 - np.exp(-t)
@@ -326,7 +365,6 @@ def generar_grafica(tipo):
         ax.set_ylabel("Carga normalizada")
         ax.grid(True)
 
-    # --- Descarga de un capacitor ---
     elif tipo == "descarga_capacitor":
         t = np.linspace(0, 5, 200)
         q = np.exp(-t)
@@ -336,24 +374,19 @@ def generar_grafica(tipo):
         ax.set_ylabel("Carga normalizada")
         ax.grid(True)
 
-    # --- Ley de Ohm (V vs I) DINÁMICA ---
     elif tipo == "ohm":
-        # Buscamos si el alumno ya calculó una Resistencia antes
         R = st.session_state.datos.get("R_grafica", 5) 
         I = np.linspace(0, 10, 100)
         V = I * R
         ax.plot(I, V, color="purple")
-        ax.set_title(f"Ley de Ohm: V = I·R (R = {R} Ω)") # El título cambia
+        ax.set_title(f"Ley de Ohm: V = I·R (R = {R} Ω)") 
         ax.set_xlabel("Corriente (A)")
         ax.set_ylabel("Voltaje (V)")
         ax.grid(True)
 
-    # --- Resonancia RLC (Agregamos un ejemplo para que cambie la curva) ---
     elif tipo == "resonancia":
-        # Buscamos si el alumno dio un factor de calidad (Q), si no, usamos 1
         Q = st.session_state.datos.get("Q_rlc", 1) 
         f = np.linspace(0.1, 10, 500)
-        # Fórmula más realista de resonancia con factor Q
         Z = np.abs(1 / (1 + 1j * Q * (f - 1 / f)))
         ax.plot(f, Z, color="orange")
         ax.set_title(f"Resonancia en circuito RLC (Factor Q = {Q})")
@@ -373,25 +406,20 @@ if pregunta:
     with st.chat_message("user"):
         st.markdown(pregunta)
 
-          # 1) Si hay flujo activo, continuar
     if st.session_state.flujo is not None:
         respuesta = continuar_flujo(pregunta)
         st.session_state.grafica = None
-
-    # 2) Si no, ver si pide gráfica
     else:
         tipo_graf = detectar_grafica(pregunta)
         if tipo_graf:
             respuesta = f"Aquí tienes la gráfica: **{tipo_graf.replace('_', ' ')}**."
             st.session_state.grafica = tipo_graf
         else:
-            # 3) Ver si pide ejercicio
             tipo_ej = detectar_ejercicio(pregunta)
             if tipo_ej:
                 respuesta = iniciar_flujo(tipo_ej)
                 st.session_state.grafica = None
             else:
-                # 4) Respuesta teórica
                 r = respuesta_teorica(pregunta)
                 if r:
                     respuesta = r
@@ -405,9 +433,6 @@ if pregunta:
     with st.chat_message("assistant"):
         st.markdown(respuesta)
 
-# ------------------------------------------------------------
-# MOSTRAR GRÁFICA (si hay una activa)
-# ------------------------------------------------------------
 if st.session_state.grafica:
     fig = generar_grafica(st.session_state.grafica)
     st.pyplot(fig)
