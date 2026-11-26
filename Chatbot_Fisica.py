@@ -1797,6 +1797,13 @@ def quitar_saludo(p):
         resto = re.sub(patron, "", resto).strip()
     return resto
 
+# ---------- Comandos ocultos (no aparecen en el menú de ayuda) ----------
+COMANDOS_CREADORES = {"nombres de los creadores", "nombre de los creadores", "nombres de los integrantes"}
+COMANDOS_DOCENTE = {"nombre del docente", "nombre del profesor"}
+INTEGRANTES = ["Henry Raymundo", "Kennet", "Alonso"]
+DOCENTE = "Oscar Enrique Tang Cruz"
+CURSO = "Física Aplicada"
+
 COMANDOS_CANCELAR = {"cancelar", "cancela", "salir", "reiniciar", "reinicia", "parar", "stop"}
 COMANDOS_MENU = {"ayuda", "menu", "temas", "help", "que puedes hacer", "opciones"}
 
@@ -1839,6 +1846,19 @@ if pregunta:
 
     if eleccion:
         respuesta, st.session_state.grafica = responder_tema(eleccion, sug["pregunta"])
+
+    # Comandos ocultos: funcionan en cualquier momento, sin interrumpir un ejercicio en curso
+    elif p_norm in COMANDOS_CREADORES:
+        lista = "\n".join(f"- {nombre}" for nombre in INTEGRANTES)
+        respuesta = f"👥 **Creadores de este asistente virtual:**\n\n{lista}\n\n*Proyecto del curso de {CURSO}.*"
+        if st.session_state.flujo is not None:
+            respuesta += "\n\n*(Tu ejercicio sigue en curso: puedes continuar con el dato que te pedí.)*"
+        st.session_state.grafica = None
+    elif p_norm in COMANDOS_DOCENTE:
+        respuesta = f"👨‍🏫 **Docente del curso de {CURSO}:** {DOCENTE}"
+        if st.session_state.flujo is not None:
+            respuesta += "\n\n*(Tu ejercicio sigue en curso: puedes continuar con el dato que te pedí.)*"
+        st.session_state.grafica = None
 
     # 0) Cancelar un ejercicio a medias
     elif st.session_state.flujo is not None and p_norm in COMANDOS_CANCELAR:

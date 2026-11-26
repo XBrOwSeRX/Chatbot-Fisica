@@ -341,6 +341,23 @@ for frase in FUERA_DE_TEMA:
     comprobar(f"No inventa respuesta: '{frase}'", "no entendí" in r, f"({r[:60]!r})")
 
 # ============================================================
+# 7) COMANDOS OCULTOS
+# ============================================================
+titulo("7) Comandos ocultos")
+s3 = Simulador()
+r = s3.escribir("nombres de los creadores")
+comprobar("'nombres de los creadores' muestra a los integrantes",
+          all(n in r for n in ["Henry Raymundo", "Kennet", "Alonso"]), f"({r[:60]!r})")
+r = s3.escribir("Nombre del Docente")
+comprobar("'nombre del docente' muestra al docente (sin importar mayúsculas)", "Oscar Enrique Tang Cruz" in r, f"({r[:60]!r})")
+comprobar("Los comandos ocultos no aparecen en el menú de ayuda",
+          "creadores" not in s3.escribir("ayuda") and "docente" not in s3.escribir("ayuda").lower())
+s3.conversar(["resuelve un ejercicio de coulomb", "2 micro"])
+r = s3.escribir("nombre del docente")
+r2 = s3.conversar(["-3 micro", "5 cm"])
+comprobar("Un comando oculto no interrumpe el ejercicio en curso", "Tang Cruz" in r and "21.6 N" in r2, f"({r2[:60]!r})")
+
+# ============================================================
 # RESUMEN
 # ============================================================
 total_pruebas = resultados["ok"] + resultados["fallo"]
